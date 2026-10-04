@@ -1,0 +1,201 @@
+-- ====================================================================
+--                      OCTOS HUB - DANDY'S WORLD
+-- ====================================================================
+
+-- 1. Carregamento Seguro e Verificação
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- Variáveis de controle das trapaças
+local _G = getgenv and getgenv() or {}
+_G.WalkSpeedValue = 16
+_G.NoClipEnabled = false
+_G.EspMonstrosEnabled = false
+
+-- Atualizar o personagem quando o jogador morre/renasce
+LocalPlayer.CharacterAdded:Connect(function(novoChar)
+    Character = novoChar
+    Humanoid = novoChar:WaitForChild("Humanoid")
+end)
+
+-- 2. Loop de funcionamento do NoClip (Seguro)
+RunService.Stepped:Connect(function()
+    if _G.NoClipEnabled and Character then
+        for _, parte in pairs(Character:GetChildren()) do
+            if parte:IsA("BasePart") then
+                parte.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Loop de controle de velocidade constante (Bypass simples)
+RunService.RenderStepped:Connect(function()
+    if Humanoid and Humanoid.WalkSpeed ~= _G.WalkSpeedValue then
+        Humanoid.WalkSpeed = _G.WalkSpeedValue
+    end
+end)
+
+-- 3. Criação da Interface Visual Premium "OCTOS HUB"
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "OctosHubUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Janela Principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 240)
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20) -- Fundo escuro premium
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Essencial para mexer no celular
+MainFrame.Parent = ScreenGui
+
+-- Cantos arredondados
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainFrame
+
+-- Barra de Título (Estilo Riddance)
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
+TitleBar.BackgroundColor3 = Color3.fromRGB(255, 100, 0) -- Cor laranja Octos combinando com seu canal
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "🐙 OCTOS HUB v1.0 | Dandy's World"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextSize = 16
+TitleLabel.Parent = TitleBar
+
+-- Botão de Fechar o Menu
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 2)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 16
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Parent = TitleBar
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Container dos Botões
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(1, -20, 1, -50)
+Container.Position = UDim2.new(0, 10, 0, 45)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 300)
+Container.ScrollBarThickness = 4
+Container.Parent = MainFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.Parent = Container
+Layout.Padding = UDim.new(0, 8)
+
+-- Função auxiliar para criar botões com estilo uniforme
+local function CriarBotaoAlternador(texto, callback)
+    local Botao = Instance.new("TextButton")
+    Botao.Size = UDim2.new(1, 0, 0, 38)
+    Botao.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    Botao.Text = texto
+    Botao.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Botao.TextSize = 14
+    Botao.Font = Enum.Font.SourceSans
+    Botao.BorderSizePixel = 0
+    Botao.Parent = Container
+    
+    local BCorner = Instance.new("UICorner")
+    BCorner.CornerRadius = UDim.new(0, 5)
+    BCorner.Parent = Botao
+    
+    local ativo = false
+    Botao.MouseButton1Click:Connect(function()
+        ativo = not ativo
+        if ativo then
+            Botao.BackgroundColor3 = Color3.fromRGB(255, 100, 0) -- Laranja Ativo Octos
+        else
+            Botao.BackgroundColor3 = Color3.fromRGB(30, 30, 45) -- Cor padrão
+        end
+        callback(ativo)
+    end)
+end
+
+-- ====================================================================
+--                      FUNÇÕES DO HUB (OCTOS FEATURES)
+-- ====================================================================
+
+-- 1. Botão de Velocidade Segura
+CriarBotaoAlternador("Alternar Velocidade Rápida (32)", function(estado)
+    if estado then
+        _G.WalkSpeedValue = 32
+    else
+        _G.WalkSpeedValue = 16
+    end
+end)
+
+-- 2. Botão de NoClip (Atravessar Paredes)
+CriarBotaoAlternador("Atravessar Paredes (NoClip)", function(estado)
+    _G.NoClipEnabled = estado
+end)
+
+-- Função auxiliar para aplicar o efeito brilhante do ESP
+local function AplicarEfeitoESP(obj)
+    -- Verifica se é um monstro (Dandy's World costuma usar "Twisted" ou o modelo contendo Humanoid)
+    if string.find(string.lower(obj.Name), "twisted") or (obj:FindFirstChild("Humanoid") and obj.Name ~= LocalPlayer.Name) then
+        if not obj:FindFirstChild("OctosHighlight") then
+            local Highlight = Instance.new("Highlight")
+            Highlight.Name = "OctosHighlight"
+            Highlight.FillColor = Color3.fromRGB(255, 0, 100) -- Rosa/Vermelho Neon
+            Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            Highlight.Parent = obj
+        end
+    end
+end
+
+-- 3. Botão de ESP (Ver Monstros/Twisteds na parede)
+CriarBotaoAlternador("Destacar Monstros (ESP)", function(estado)
+    _G.EspMonstrosEnabled = estado
+    
+    if estado then
+        -- Aplica nos monstros que já estão no mapa agora
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            AplicarEfeitoESP(obj)
+        end
+    else
+        -- Remove o brilho se desativado
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            local hl = obj:FindFirstChild("OctosHighlight")
+            if hl then hl:Destroy() end
+        end
+    end
+end)
+
+-- Monitora o mapa em tempo real caso novos monstros apareçam
+Workspace.DescendantAdded:Connect(function(novoObj)
+    if _G.EspMonstrosEnabled then
+        task.wait(0.5) -- Pequeno delay para o jogo carregar o monstro por completo
+        AplicarEfeitoESP(novoObj)
+    end
+end)
+
+print("Análise Concluída: Octos Hub corrigido com sucesso!")
